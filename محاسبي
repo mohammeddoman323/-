@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق كناش البسيط</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+        }
+        .client {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>إدارة الديون</h2>
+        <input type="text" id="clientName" placeholder="اسم العميل">
+        <input type="number" id="clientBalance" placeholder="الرصيد الأولي">
+        <button onclick="addClient()">إضافة عميل</button>
+
+        <h3>قائمة العملاء</h3>
+        <div id="clientsList"></div>
+    </div>
+
+    <script>
+        let clients = JSON.parse(localStorage.getItem("clients")) || [];
+
+        function addClient() {
+            let name = document.getElementById("clientName").value;
+            let balance = parseFloat(document.getElementById("clientBalance").value) || 0;
+
+            if (name === "") {
+                alert("الرجاء إدخال اسم العميل");
+                return;
+            }
+
+            clients.push({ name, balance, transactions: [] });
+            localStorage.setItem("clients", JSON.stringify(clients));
+            displayClients();
+        }
+
+        function addTransaction(index, type) {
+            let amount = parseFloat(prompt("أدخل المبلغ:")) || 0;
+            if (amount === 0) return;
+
+            if (type === "debt") {
+                clients[index].balance -= amount;
+                clients[index].transactions.push({ type: "دين", amount });
+            } else {
+                clients[index].balance += amount;
+                clients[index].transactions.push({ type: "دفع", amount });
+            }
+
+            localStorage.setItem("clients", JSON.stringify(clients));
+            displayClients();
+        }
+
+        function displayClients() {
+            let list = document.getElementById("clientsList");
+            list.innerHTML = "";
+
+            clients.forEach((client, index) => {
+                let clientDiv = document.createElement("div");
+                clientDiv.classList.add("client");
+                clientDiv.innerHTML = `
+                    <strong>${client.name}</strong><br>
+                    الرصيد: ${client.balance} دينار<br>
+                    <button onclick="addTransaction(${index}, 'debt')">إضافة دين</button>
+                    <button onclick="addTransaction(${index}, 'payment')">إضافة دفع</button>
+                    <h4>المعاملات:</h4>
+                    ${client.transactions.map(t => `<p>${t.type}: ${t.amount} دينار</p>`).join("")}
+                `;
+                list.appendChild(clientDiv);
+            });
+        }
+
+        displayClients();
+    </script>
+
+</body>
+</html>
